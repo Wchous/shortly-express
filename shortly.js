@@ -85,7 +85,30 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 
-
+app.post('/create',
+function(req,res){
+  console.log(req.body)
+  if(!req.body){
+    res.status(400).send('login failed')
+    return
+  }else{
+  db.doesUserExist(req.body.username)
+  .then(results => {
+    console.log(results)
+      if(results.length > 0){
+        throw ("user already exists")
+      }
+      return db.createUser(req.body.username, req.body.password)
+      })
+  .then(results => {
+    res.status(201).send('user created')
+  }) 
+  .catch(err =>{
+      console.log('catch statement error', err)
+      res.status(500).send(err)
+    })
+  }
+})
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail

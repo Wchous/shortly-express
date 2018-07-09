@@ -1,4 +1,5 @@
 var path = require('path');
+var bcrypt = require('bcrypt-nodejs')
 var knex = require('knex')({
   client: 'sqlite3',
   connection: {
@@ -43,13 +44,24 @@ db.knex.schema.hasTable('users').then(function(exists) {
   if (!exists) {
     db.knex.schema.createTable('users', function (user) {
       user.increments('id').primary();
-      user.text('name');
+      user.text('username');
       user.text('password');
     }).then(function (table) {
       console.log('Created Table users', table);
     });
   }
 });
+
+db.doesUserExist = (username) => {
+ return db.knex('users').where({'username': username}).select('name')
+}
+
+db.createUser = (username, password)=> {
+  const salter = 'this is some salt for your password'
+  const hashedPass = bcrypt.hashSync(password + salter)
+  return db.knex('users').insert({'username':username , 'password': hashedPass})
+}
+
 
 // db.knex.schema.hasTable('users_urls').then(function(exists) {
 //   if (!exists) {

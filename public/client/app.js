@@ -35,13 +35,11 @@ window.Shortly = Backbone.View.extend({
 
   renderLoginView: function(e){
     e && e.preventDefault();
-    console.log('clicked login on navbar')
     this.router.navigate('/login', { trigger: true });
   },
 
   renderSignupView: function(e){
     e && e.preventDefault();
-    console.log('clicked signup on navbar')
     this.router.navigate('/signup', { trigger: true });
   },
 
