@@ -4,7 +4,7 @@ Shortly.SignupView = Backbone.View.extend({
   template: Templates['signup'],
 
   events: {
-    //'submit': 'shortenUrl'
+    'submit': 'addUser'
   },
 
   render: function() {
@@ -13,30 +13,36 @@ Shortly.SignupView = Backbone.View.extend({
     return this;
   },
 
-  // shortenUrl: function(e) {
-  //   e.preventDefault();
-  //   var $form = this.$el.find('form .text');
-  //   var link = new Shortly.Link({ url: $form.val() });
-  //   link.on('request', this.startSpinner, this);
-  //   link.on('sync', this.success, this);
-  //   link.on('error', this.failure, this);
-  //   link.save({});
-  //   $form.val('');
-  // },
+  addUser: function(e) {
+    console.log(e)
+    e.preventDefault();
+    var $username = this.$el.find('form #username');
+    var $password = this.$el.find('form #password');
+    var body = {
+      'username' : $username.val(),
+      'password' : $password.val()
+    }
+    var user = new Shortly.User(body);
+    user.on('request', this.startSpinner, this);
+    user.on('sync', this.success, this);
+    user.on('error', this.failure, this);
+    console.log(this.$el)
+    
+  },
 
-  // success: function(link) {
-  //   this.stopSpinner();
-  //   var view = new Shortly.LinkView({ model: link });
-  //   this.$el.find('.message').append(view.render().$el.hide().fadeIn());
-  // },
+  success: function(link) {
+    this.stopSpinner();
+    var view = new Shortly.LinkView({ model: link });
+    this.$el.find('.message').append(view.render().$el.hide().fadeIn());
+  },
 
-  // failure: function(model, res) {
-  //   this.stopSpinner();
-  //   this.$el.find('.message')
-  //     .html('Please enter a valid URL')
-  //     .addClass('error');
-  //   return this;
-  // },
+  failure: function(model, res) {
+    this.stopSpinner();
+    this.$el.find('.message')
+      .html('Please enter a valid URL')
+      .addClass('error');
+    return this;
+  },
 
   startSpinner: function() {
     this.$el.find('img').show();
