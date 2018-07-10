@@ -33,19 +33,30 @@ app.use(express.static(__dirname + '/public'));
 
 app.get('/', 
 function(req, res) {
+
+if(!req.session.username){
+res.redirect('/login')
+return;
+}
+
   res.render('index');
 });
 
 app.get('/create', 
 function(req, res) {
-  if(req.session.username){
-  console.log('hi ' + req.session.username)
+  if(!req.session.username){
+res.redirect('/login')
+return;
 }
   res.render('index');
 });
 
 app.get('/links', 
 function(req, res) {
+if(!req.session.username){
+res.redirect('/login')
+return;
+}
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
   });
@@ -53,8 +64,13 @@ function(req, res) {
 
 app.post('/links', 
 function(req, res) {
+if(!req.session.username){
+res.redirect('/login')
+return;
+}
+
   var uri = req.body.url;
-  if (!util.isValidUrl(uri) && req.session.username) {
+  if (!util.isValidUrl(uri)) {
     console.log('Not a valid url: ', uri);
     return res.sendStatus(404);
   }
@@ -85,7 +101,7 @@ function(req, res) {
 app.get('/login', 
 function(req, res) {
   if(req.session.username){
-    res.render('index')
+    res.redirect('/')
     return  
   }
   res.render('login')
@@ -94,7 +110,7 @@ function(req, res) {
 app.get('/signup', 
 function(req, res) {
    if(req.session.username){
-    res.render('index')
+    res.redirect('/')
     return  
   }
   res.render('signup')
@@ -104,6 +120,7 @@ function(req, res) {
 /************************************************************/
 
 const createUser = (req,res)=>{
+
   var user = new User({"username" : req.body.username});
     user.fetch().then(function(found) {
       console.log(found,'found')
@@ -115,7 +132,8 @@ const createUser = (req,res)=>{
       return Users.create({"username": req.body.username, "password": hashedPass});
     })
   .then(user => {
-    res.status(200).send(user)
+req.session.username = req.body.username;
+    res.redirect('/');
   }) 
   .catch(err =>{
       console.log('catch statement error', err)
@@ -124,6 +142,7 @@ const createUser = (req,res)=>{
 
 
 const loginUser = (req,res)=>{
+
 var user = new User({"username" : req.body.username});
 
   const salter = 'this is some salt for your password'
@@ -139,7 +158,7 @@ console.log('logged in')
 // var sessData = req.session;
 req.session.username = req.body.username
 // sessData.loggedIn = true;
-      res.status(200).send(user)
+      res.redirect('/');
       return;
     }
 console.log('not logged in')
@@ -151,30 +170,37 @@ console.log('not logged in')
   })
 }
 
-app.post('/users',
-function(req,res){
-  console.log(req.body)
-  if(!req.body){
+app.post('/login',function(req,res){
+if(!req.body.username || !req.body.password){
     res.status(400).send('invalid user info')
     return
   }else{
+      loginUser(req,res)
+      return;
+  }
+});
 
-    if(req.body.type==='create'){
+app.post('/signup',
+function(req,res){
+console.log(req.body)
+  if(!req.body.username || !req.body.password){
+    res.status(400).send('invalid user info')
+    return
+  }else{
       createUser(req,res);
       return;
-    }else if (req.body.type ==='login'){
-      loginUser(req,res)
-    }else{
-      res.status(500).send('invalid user info');
-      return;
-    }
   }
 });
 
 app.get('/logout',
-function(req,res){ 
+function(req,res){
+if(!req.session.username){
+res.redirect('/login')
+return;
+}
+console.log('logging user out')
   req.session.destroy()
-  console.log('User signed out')
+  res.redirect('/')
 });
 
 /************************************************************/

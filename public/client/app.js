@@ -1,12 +1,11 @@
+
 window.Shortly = Backbone.View.extend({
   template: Templates['layout'],
 
   events: {
     'click li a.index': 'renderIndexView',
     'click li a.create': 'renderCreateView',
-    'click li a.login': 'renderLoginView',
-    'click li a.signup': 'renderSignupView',
-    'click li a.signout': 'renderSignoutView'
+    //'click li a.signout': 'renderSignoutView'
   },
 
   initialize: function() {
@@ -34,23 +33,10 @@ window.Shortly = Backbone.View.extend({
     this.router.navigate('/create', { trigger: true });
   },
 
-  renderLoginView: function(e){
-    e && e.preventDefault();
-    this.router.navigate('/login', { trigger: true });
-  },
   renderSignoutView: function(e){
-    e && e.preventDefault();
-    console.log('logout click')
-    request('localhost:4568/logout').then(()=>{
-      window.loggedIn = false
-      this.router.navigate('/login', { trigger: true });
-  
-    })
-    .catch((err)=>{console.log(err + ' there has been an error')})
-  }, 
-  renderSignupView: function(e){
-    e && e.preventDefault();
-    this.router.navigate('/signup', { trigger: true });
+    //e && e.preventDefault();
+    
+    //fetch('http://localhost:4568/logout',{type:'POST',credentials: 'include'}).then((res)=>console.log(res)).catch(err=>console.log(err))
   },
 
   updateNav: function(routeName) {
