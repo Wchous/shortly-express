@@ -53,6 +53,7 @@ return;
 
 app.get('/links', 
 function(req, res) {
+console.log(req.session)
 if(!req.session.username){
 res.redirect('/login')
 return;
@@ -64,10 +65,10 @@ return;
 
 app.post('/links', 
 function(req, res) {
-if(!req.session.username){
-res.redirect('/login')
-return;
-}
+// if(!req.session.username){
+//   res.redirect('/login')
+// return;
+// }
 
   var uri = req.body.url;
   if (!util.isValidUrl(uri)) {
@@ -148,20 +149,25 @@ var user = new User({"username" : req.body.username});
   const salter = 'this is some salt for your password'
 
   let hashedPass = req.body.password + salter
+
   var shasum = crypto.createHash('sha1');
   shasum.update(hashedPass);
   hashedPass = shasum.digest('hex');
 
+console.log('searching for user in db')
   user.fetch().then(function(found) {
+console.log(found)
+console.log('pass is same', found.get('password'), hashedPass)
     if (found && found.get('password')===hashedPass) {
-console.log('logged in')
+ console.log('found user in db')
 // var sessData = req.session;
-req.session.username = req.body.username
-// sessData.loggedIn = true;
+req.session.username = req.body.username;
+console.log(req.session)
       res.redirect('/');
       return;
     }
-console.log('not logged in')
+ console.log('not logged in')
+
     res.status(400).send('Invalid Credentials');
 }) 
 .catch(err =>{
@@ -171,6 +177,7 @@ console.log('not logged in')
 }
 
 app.post('/login',function(req,res){
+console.log('trying to login',req.body)
 if(!req.body.username || !req.body.password){
     res.status(400).send('invalid user info')
     return
@@ -182,7 +189,7 @@ if(!req.body.username || !req.body.password){
 
 app.post('/signup',
 function(req,res){
-console.log(req.body)
+// console.log(req.body)
   if(!req.body.username || !req.body.password){
     res.status(400).send('invalid user info')
     return
