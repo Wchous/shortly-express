@@ -92,14 +92,16 @@ function(req,res){
     res.status(400).send('login failed')
     return
   }else{
-  db.doesUserExist(req.body.username)
-  .then(results => {
-    console.log(results)
-      if(results.length > 0){
+    var user = new User({"username" : req.body.username});
+    user.fetch().then(function(found) {
+      if (found) {
         throw ("user already exists")
       }
-      return db.createUser(req.body.username, req.body.password)
-      })
+      const salter = 'this is some salt for your password'
+      const hashedPass = req.body.password + salter
+      return Users.create({username: req.body.username, password: hashedPass});
+      
+    })
   .then(results => {
     res.status(201).send('user created')
   }) 
