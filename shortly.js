@@ -16,7 +16,9 @@ var app = express();
 
 app.use(session({
   cookie: { maxAge: 60000 },
-  secret: 'keyboard cat'
+  secret: 'keyboard cat',
+  resave: true,
+  saveUninitialized: false
 }))
 
 app.set('views', __dirname + '/views');
@@ -36,8 +38,8 @@ function(req, res) {
 
 app.get('/create', 
 function(req, res) {
-  if(req.session.loggedIn){
-  console.log('hi')
+  if(req.session.username){
+  console.log('hi ' + req.session.username)
 }
   res.render('index');
 });
@@ -52,8 +54,7 @@ function(req, res) {
 app.post('/links', 
 function(req, res) {
   var uri = req.body.url;
-
-  if (!util.isValidUrl(uri)) {
+  if (!util.isValidUrl(uri) && req.session.username) {
     console.log('Not a valid url: ', uri);
     return res.sendStatus(404);
   }
@@ -83,11 +84,19 @@ function(req, res) {
 
 app.get('/login', 
 function(req, res) {
+  if(req.session.username){
+    res.render('index')
+    return  
+  }
   res.render('login')
 });
 
 app.get('/signup', 
 function(req, res) {
+   if(req.session.username){
+    res.render('index')
+    return  
+  }
   res.render('signup')
 });
 /************************************************************/
@@ -106,7 +115,7 @@ const createUser = (req,res)=>{
       return Users.create({"username": req.body.username, "password": hashedPass});
     })
   .then(user => {
-    res.status(201).send(user)
+    res.status(200).send(user)
   }) 
   .catch(err =>{
       console.log('catch statement error', err)
@@ -127,9 +136,10 @@ var user = new User({"username" : req.body.username});
   user.fetch().then(function(found) {
     if (found && found.get('password')===hashedPass) {
 console.log('logged in')
-var sessData = req.session;
-sessData.loggedIn = true;
-      res.status(200).send('Login Success')
+// var sessData = req.session;
+req.session.username = req.body.username
+// sessData.loggedIn = true;
+      res.status(200).send(user)
       return;
     }
 console.log('not logged in')
@@ -158,10 +168,13 @@ function(req,res){
       res.status(500).send('invalid user info');
       return;
     }
-
-
-    
   }
+});
+
+app.get('/logout',
+function(req,res){ 
+  req.session.destroy()
+  console.log('User signed out')
 });
 
 /************************************************************/

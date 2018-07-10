@@ -36,14 +36,17 @@ Shortly.LoginView = Backbone.View.extend({
 
   success: function(response) {
     this.stopSpinner();
-    var view = new Shortly.LinkView({ model: response });
-    this.$el.find('.message').append(view.render().$el.hide().fadeIn());
+    //var view = new Shortly.LinkView({ model: response });
+    //this.$el.find('.message').append(view.render().$el.hide().fadeIn());
+    // window.Shortly.renderIndexView()
+    window.loggedIn = true
   },
 
   failure: function(model, res) {
+    console.log("failed to login")
     this.stopSpinner();
     this.$el.find('.message')
-      .html('Please enter a valid URL')
+      .html('Invalid credentials')
       .addClass('error');
     return this;
   },
