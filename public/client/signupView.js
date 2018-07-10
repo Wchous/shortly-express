@@ -14,30 +14,35 @@ Shortly.SignupView = Backbone.View.extend({
   },
 
   addUser: function(e) {
-    console.log(e)
     e.preventDefault();
+
+    console.log(e)
+
     var $username = this.$el.find('form #username');
     var $password = this.$el.find('form #password');
     var body = {
       'username' : $username.val(),
-      'password' : $password.val()
+      'password' : $password.val(),
+      'type':'create'
     }
     var user = new Shortly.User(body);
     user.on('request', this.startSpinner, this);
     user.on('sync', this.success, this);
     user.on('error', this.failure, this);
+    user.save({});
     console.log(this.$el)
     
   },
 
-  success: function(link) {
+  success: function(user) {
     this.stopSpinner();
-    var view = new Shortly.LinkView({ model: link });
+    console.log('susccess',user)
     this.$el.find('.message').append(view.render().$el.hide().fadeIn());
   },
 
   failure: function(model, res) {
     this.stopSpinner();
+   console.log(res)
     this.$el.find('.message')
       .html('Please enter a valid URL')
       .addClass('error');

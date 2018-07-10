@@ -85,32 +85,68 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 
-app.post('/create',
-function(req,res){
-  console.log(req.body)
-  if(!req.body){
-    res.status(400).send('login failed')
-    return
-  }else{
-    var user = new User({"username" : req.body.username});
+const createUser = (req,res)=>{
+  var user = new User({"username" : req.body.username});
     user.fetch().then(function(found) {
+      console.log(found,'found')
       if (found) {
         throw ("user already exists")
       }
       const salter = 'this is some salt for your password'
       const hashedPass = req.body.password + salter
-      return Users.create({username: req.body.username, password: hashedPass});
-      
+      return Users.create({"username": req.body.username, "password": hashedPass});
     })
-  .then(results => {
-    res.status(201).send('user created')
+  .then(user => {
+    res.status(201).send(user)
   }) 
   .catch(err =>{
       console.log('catch statement error', err)
-      res.status(500).send(err)
     })
+}
+
+
+const loginUser = (req,res)=>{
+  const salter = 'this is some salt for your password'
+    const hashedPass = req.body.password + salter
+  var user = new User({"username" : req.body.username, "password":hashedPass});
+  console.log('after creation',user);
+
+  user.fetch().then(function(found) {
+    console.log(found, 'found')
+    if (found) {
+      res.status(200).send('Login Success')
+      return;
+    }
+    res.status(400).send('Invalid Credentials')
+}) 
+.catch(err =>{
+  console.log(err)
+    res.status(500).send('server error',err)
+  })
+}
+
+app.post('/users',
+function(req,res){
+  console.log(req.body)
+  if(!req.body){
+    res.status(400).send('invalid user info')
+    return
+  }else{
+
+    if(req.body.type==='create'){
+      createUser(req,res);
+      return;
+    }else if (req.body.type ==='login'){
+      loginUser(req,res)
+    }else{
+      res.status(500).send('invalid user info');
+      return;
+    }
+
+
+    
   }
-})
+});
 
 /************************************************************/
 // Handle the wildcard route last - if all other routes fail
