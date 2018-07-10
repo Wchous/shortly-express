@@ -2,7 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-
+var crypto = require('crypto')
+var session = require('express-session')
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -12,6 +13,11 @@ var Link = require('./app/models/link');
 var Click = require('./app/models/click');
 
 var app = express();
+
+app.use(session({
+  cookie: { maxAge: 60000 },
+  secret: 'keyboard cat'
+}))
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -30,6 +36,9 @@ function(req, res) {
 
 app.get('/create', 
 function(req, res) {
+  if(req.session.loggedIn){
+  console.log('hi')
+}
   res.render('index');
 });
 
@@ -106,18 +115,25 @@ const createUser = (req,res)=>{
 
 
 const loginUser = (req,res)=>{
+var user = new User({"username" : req.body.username});
+
   const salter = 'this is some salt for your password'
-    const hashedPass = req.body.password + salter
-  var user = new User({"username" : req.body.username, "password":hashedPass});
-  console.log('after creation',user);
+
+  let hashedPass = req.body.password + salter
+  var shasum = crypto.createHash('sha1');
+  shasum.update(hashedPass);
+  hashedPass = shasum.digest('hex');
 
   user.fetch().then(function(found) {
-    console.log(found, 'found')
-    if (found) {
+    if (found && found.get('password')===hashedPass) {
+console.log('logged in')
+var sessData = req.session;
+sessData.loggedIn = true;
       res.status(200).send('Login Success')
       return;
     }
-    res.status(400).send('Invalid Credentials')
+console.log('not logged in')
+    res.status(400).send('Invalid Credentials');
 }) 
 .catch(err =>{
   console.log(err)
